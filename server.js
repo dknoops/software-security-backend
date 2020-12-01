@@ -23,10 +23,8 @@ const checkJwt = jwt({
 const app = express();
 app.use(cors());
 
-app.get("/public", (req, res) => {
-  res.json({
-    message: "Hello from public",
-  });
+app.get("/", (req, res) => {
+  res.send("This is the backend api for my software security web application");
 });
 
 app.get("/cards", checkJwt, (req, res) => {
