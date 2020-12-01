@@ -40,5 +40,5 @@ app.get("/cards", checkJwt, (req, res) => {
     });
 });
 
-app.listen(3001);
+app.listen(process.env.PORT);
 console.log("API Server listening");
