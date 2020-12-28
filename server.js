@@ -3,6 +3,7 @@ const jwt = require("express-jwt");
 const jwks = require("jwks-rsa");
 require("dotenv").config();
 const cors = require("cors");
+const { PORT = 8080 } = process.env;
 
 const cards = require("./modules/cards");
 
