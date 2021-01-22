@@ -4,7 +4,24 @@ You have reached the backend of my 'Software Security' assigment. This REST API 
 
 It is publically available at https://software-security-api.dknoops.xyz/
 
+## Toegangscontrole Policy
+
+### Gebruikers
+
+- Kaarten bekijken
+- Nieuwe kaarten aanmaken
+- Eigen kaarten aanpassen, verwijderen
+
+### Beheerders
+
+- Kaarten bekijken
+- Kaarten verwijderen
+
 ## API Resources
+
+### Origin
+
+https://www.dknoops.xyz/
 
 ### / (root)
 
@@ -64,7 +81,6 @@ No authentication required
 - OPTIONS
 
 Authentication required
-
 - GET
 - PUT
 - DELETE
