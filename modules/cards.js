@@ -21,6 +21,18 @@ async function getByUser(user_id) {
   });
 }
 
+async function getOwner(card_id) {
+  return await new Promise((resolve, reject) => {
+    connection.query(
+      "SELECT user_id FROM cards WHERE id = ?",
+      [card_id],
+      (err, res) => {
+        return err || res.length === 0 ? reject() : resolve(res[0].user_id);
+      }
+    );
+  });
+}
+
 async function getById(id) {
   return await new Promise((resolve, reject) => {
     connection.query("SELECT * FROM cards WHERE id = ?", [id], (err, res) => {
@@ -35,7 +47,7 @@ async function store({ name, image }, user_id) {
       "INSERT INTO cards VALUES(NULL, ?, ?, ?)",
       [user_id, name, image],
       (err, res) => {
-        return err || res.length === 0 ? reject() : resolve(res);
+        return err || res.length === 0 ? reject() : resolve(res.insertId);
       }
     );
   });
@@ -64,6 +76,7 @@ async function destroy(id) {
 module.exports = {
   getAll,
   getByUser,
+  getOwner,
   getById,
   store,
   update,

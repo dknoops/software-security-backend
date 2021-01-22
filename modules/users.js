@@ -33,30 +33,29 @@ async function me({ sub }) {
         if (err || user.length === 0) {
           return reject();
         }
-        console.log(user);
         return resolve(user[0]);
       }
     );
   });
 }
 
-async function store({ sub }) {
+async function store({ sub }, { name }) {
   return await new Promise((resolve, reject) => {
     connection.query(
-      "INSERT INTO users VALUES(NULL, ?, 0)",
-      [sub],
+      "INSERT INTO users VALUES(NULL, ?, ?, 0)",
+      [sub, name],
       (err, res) => {
-        return err || res.length === 0 ? reject() : resolve(res);
+        return err || res.length === 0 ? reject() : resolve(res.insertId);
       }
     );
   });
 }
 
-async function update(userId, { admin = 0 }) {
+async function update({ name }, { sub }) {
   return await new Promise((resolve, reject) => {
     connection.query(
-      "UPDATE users SET `admin` = ? WHERE `id` = ?",
-      [admin, userId],
+      "UPDATE users SET `name` = ? WHERE `sub` = ?",
+      [name, sub],
       (err, res) => {
         return err || res.length === 0 ? reject() : resolve();
       }
@@ -64,15 +63,11 @@ async function update(userId, { admin = 0 }) {
   });
 }
 
-async function destroy(userId) {
+async function destroy({ sub }) {
   return await new Promise((resolve, reject) => {
-    connection.query(
-      "DELETE FROM users WHERE `id` = ?",
-      [userId],
-      (err, res) => {
-        return err || res.affectedRows === 0 ? reject() : resolve();
-      }
-    );
+    connection.query("DELETE FROM users WHERE `sub` = ?", [sub], (err, res) => {
+      return err || res.affectedRows === 0 ? reject() : resolve();
+    });
   });
 }
 

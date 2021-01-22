@@ -7,6 +7,7 @@ const { PORT = 8080 } = process.env;
 
 const cards = require("./modules/cards");
 const users = require("./modules/users");
+const auth0 = require("./modules/auth0");
 
 const checkJwt = jwt({
   //Provide signing key
@@ -22,21 +23,35 @@ const checkJwt = jwt({
   algorithms: ["RS256"],
 });
 
+const options = {
+  allowedHeaders:
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+  credentials: true,
+  origin: process.env.REACT_APP_URL,
+};
+
 const app = express();
 app.use(express.json());
-app.use(
-  cors({
-    allowedHeaders:
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-  })
-);
+app.use((req, res, next) => {
+  res.format({
+    "application/json": () => next(),
+    default: () => res.status(406).end(),
+  });
+});
 
-app.get("/", (req, res) => {
+app.get("/", cors(options), (req, res) => {
   res.send("This is the backend api for my software security web application");
 });
 
-app.param("id", (req, res, next, id) => {
-  req.id = id;
+app.options("/", cors({ ...options, methods: "GET, OPTIONS" }));
+
+app.all("/", (req, res) => {
+  res.set("Allow", "GET, OPTIONS");
+  res.status(405).end();
+});
+
+app.param("card_id", (req, res, next, id) => {
+  req.card_id = id;
   next();
 });
 
@@ -53,13 +68,11 @@ const getUserID = (req, res, next) => {
 };
 
 const ownUser = (req, res, next) => {
-  if (req.userId && req.userId === req.caller_id) {
-    next();
-  } else if (req.prodId) {
-    products
-      .getUser(req.prodId)
+  if (req.body.user_id) {
+    cards
+      .getOwner(req.body.card_id)
       .then((owner_id) => {
-        if (owner_id === req.caller_id) {
+        if (owner_id === req.body.user_id) {
           next();
         } else {
           res.status(403).end();
@@ -73,21 +86,11 @@ const ownUser = (req, res, next) => {
 
 const isOwnUserOrAdmin = (req, res, next) => {
   req.isAdmin = false;
-  if (req.userId) {
-    if (req.userId === req.caller_id) {
-      req.isAdmin = true;
-      next();
-    } else {
-      users.isAdmin(req.caller_id).then((isAdmin) => {
-        req.isAdmin = isAdmin;
-        next();
-      });
-    }
-  } else if (req.prodId) {
-    products
-      .getUser(req.prodId)
-      .then((product_user_id) => {
-        req.isAdmin = product_user_id === req.caller_id;
+  if (req.card_id) {
+    cards
+      .getById(req.card_id)
+      .then((card) => {
+        req.isAdmin = card[0].user_id === req.caller_id;
         next();
       })
       .catch(() => res.status(404).end());
@@ -105,18 +108,18 @@ const isAdmin = (req, res, next) => {
 };
 
 /* USERS */
-app.post("/users", checkJwt, (req, res) => {
+app.post("/users", checkJwt, cors(options), (req, res) => {
   users
     .store(req.user, req.body)
     .then((result) => {
-      res.send(result);
+      res.status(201).location(`/users/${result}`).send();
     })
     .catch((result) => {
       res.status(400).end();
     });
 });
 
-app.get("/me", checkJwt, (req, res) => {
+app.get("/me", checkJwt, cors(options), (req, res) => {
   users
     .me(req.user)
     .then((result) => {
@@ -127,70 +130,168 @@ app.get("/me", checkJwt, (req, res) => {
     });
 });
 
+app.put("/users", checkJwt, cors(options), (req, res) => {
+  users
+    .update(req.body, req.user)
+    .then((result) => {
+      res.end();
+    })
+    .catch((result) => {
+      res.status(400).end();
+    });
+});
+
+app.delete("/users", checkJwt, cors(options), (req, res) => {
+  users
+    .destroy(req.user)
+    .then((result) => {
+      res.end();
+    })
+    .catch((result) => {
+      res.status(400).end();
+    });
+
+  auth0
+    .deleteAuthzAccount(req.user)
+    .then((result) => {
+      res.end();
+    })
+    .catch((result) => {
+      console.log(result);
+      res.status(400).end();
+    });
+});
+
+app.options(
+  "/users",
+  cors({ ...options, methods: "POST, PUT, DELETE, OPTIONS" })
+);
+app.options("/me", cors({ ...options, methods: "GET, OPTIONS" }));
+
+app.all("/users", (req, res) => {
+  res.set("Allow", "POST, PUT, DELETE, OPTIONS");
+  res.status(405).end();
+});
+
+app.all("/me", (req, res) => {
+  res.set("Allow", "GET, OPTIONS");
+  res.status(405).end();
+});
+
 /* CARDS */
-app.get("/cards", (req, res) => {
+app.get("/cards", cors(options), (req, res) => {
   cards
     .getAll()
     .then((result) => {
       res.send(result);
     })
     .catch((result) => {
-      res.send(result);
+      res.status(404).end();
     });
 });
 
-app.get("/user-cards", checkJwt, getUserID, (req, res) => {
+app.get("/user-cards", checkJwt, getUserID, cors(options), (req, res) => {
   cards
     .getByUser(req.caller_id)
     .then((result) => {
       res.send(result);
     })
     .catch((result) => {
-      res.send(result);
+      res.status(404).end();
     });
 });
 
-app.get("/cards/:id", checkJwt, (req, res) => {
+app.get("/cards/:card_id", checkJwt, cors(options), (req, res) => {
   cards
-    .getById(req.id)
+    .getById(req.card_id)
     .then((result) => {
       res.send(result);
     })
     .catch((result) => {
-      res.send(result);
+      res.status(404).end();
     });
 });
 
-app.post("/cards", checkJwt, getUserID, (req, res) => {
-  cards
-    .store(req.body, req.caller_id)
-    .then((result) => {
-      res.send(result);
-    })
-    .catch((result) => {
-      res.status(400).end();
-    });
+app.post("/cards", checkJwt, getUserID, cors(options), isAdmin, (req, res) => {
+  if (!req.isAdmin) {
+    cards
+      .store(req.body, req.caller_id)
+      .then((result) => {
+        res.status(201).location(`/cards/${result}`).send();
+      })
+      .catch((result) => {
+        res.status(400).end();
+      });
+  } else {
+    res.status(403).end();
+  }
 });
 
-app.put("/cards/:id", checkJwt, (req, res) => {
+app.put("/cards/:card_id", checkJwt, cors(options), ownUser, (req, res) => {
   cards
-    .update(req.body, req.id)
+    .update(req.body, req.card_id)
     .then((result) => {
-      res.send(result);
-    })
-    .catch((result) => {
-      res.status(400).end();
-    });
-});
-
-app.delete("/cards/:id", checkJwt, (req, res) => {
-  cards
-    .destroy(req.id)
-    .then((result) => {
-      res.send(result);
+      res.end();
     })
     .catch((result) => {
       res.status(400).end();
+    });
+});
+
+app.delete(
+  "/cards/:card_id",
+  checkJwt,
+  cors(options),
+  isOwnUserOrAdmin,
+  (req, res) => {
+    if (!req.isAdmin) {
+      cards
+        .destroy(req.card_id)
+        .then((result) => {
+          res.end();
+        })
+        .catch((result) => {
+          res.status(400).end();
+        });
+    } else {
+      res.status(403).end();
+    }
+  }
+);
+
+app.options("/cards", cors({ ...options, methods: "GET, POST, OPTIONS" }));
+app.options("/user-cards", cors({ ...options, methods: "GET, OPTIONS" }));
+app.options(
+  "/cards/:card_id",
+  cors({ ...options, methods: "GET, PUT, DELETE, OPTIONS" })
+);
+
+app.all("/cards", (req, res) => {
+  res.set("Allow", "GET, POST, OPTIONS");
+  res.status(405).end();
+});
+
+app.all("/user-cards", (req, res) => {
+  res.set("Allow", "GET, OPTIONS");
+  res.status(405).end();
+});
+
+app.all("/cards/:card_id", (req, res) => {
+  res.set("Allow", "GET, PUT, DELETE, OPTIONS");
+  res.status(405).end();
+});
+
+/* Auth0 */
+app.get("/auth0", cors(options), (req, res) => {
+  console.log("test");
+  auth0
+    .requestBearerToken()
+    .then((result) => {
+      console.log(result);
+      res.send(result);
+    })
+    .catch((result) => {
+      res.status(404).end();
     });
 });
 
