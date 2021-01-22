@@ -27,7 +27,7 @@ const options = {
   allowedHeaders:
     "Origin, X-Requested-With, Content-Type, Accept, Authorization",
   credentials: true,
-  origin: process.env.REACT_APP_URL,
+  //origin: process.env.REACT_APP_URL,
 };
 
 const app = express();
