@@ -8,62 +8,64 @@ It is publically available at https://software-security-api.dknoops.xyz/
 
 ### / (root)
 
-#### No authentication required
-
+```
+No authentication required
 - OPTIONS
 - GET
+```
 
 ### /users
 
-#### No authentication required
-
+```
+No authentication required
 - OPTIONS
 
-#### Authentication required
-
+Authentication required
 - POST
 - PUT
 - DELETE
+```
 
 ### /me
 
-#### No authentication required
-
+```
+No authentication required
 - OPTIONS
 
-#### Authentication required
-
+ Authentication required
 - GET
+```
 
 ### /cards
 
-#### No authentication required
-
+```
+No authentication required
 - OPTIONS
 - GET
 
-#### Authentication required
-
+Authentication required
 - POST
+```
 
 ### /user-cards
 
-#### No authentication required
-
+```
+No authentication required
 - OPTIONS
 
-#### Authentication required
-
+Authentication required
 - GET
+```
 
 ### /cards/{card_id}
 
-#### No authentication required
-
+```
+No authentication required
 - OPTIONS
 
-#### Authentication required
+Authentication required
 
 - GET
 - PUT
 - DELETE
+```
