@@ -157,7 +157,6 @@ app.delete("/users", checkJwt, cors(options), (req, res) => {
       res.end();
     })
     .catch((result) => {
-      console.log(result);
       res.status(400).end();
     });
 });
@@ -279,20 +278,6 @@ app.all("/user-cards", (req, res) => {
 app.all("/cards/:card_id", (req, res) => {
   res.set("Allow", "GET, PUT, DELETE, OPTIONS");
   res.status(405).end();
-});
-
-/* Auth0 */
-app.get("/auth0", cors(options), (req, res) => {
-  console.log("test");
-  auth0
-    .requestBearerToken()
-    .then((result) => {
-      console.log(result);
-      res.send(result);
-    })
-    .catch((result) => {
-      res.status(404).end();
-    });
 });
 
 app.listen(process.env.PORT);
