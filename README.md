@@ -103,3 +103,6 @@ This application uses Auth0 as identity provider. Upon login, the users' accesst
 
 ### SQL Injection
 Incoming data is never concatenated in a SQL query. Instead, the data gets bound to SQL parameters.
+
+## Dependabot
+GitHub's Dependabot is ingeschakeld op deze repo zodat ik zo snel mogelijk op de hoogte wordt gebracht van nieuw ontdekte kwetsbaarheden in mijn dependencies.
