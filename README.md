@@ -29,7 +29,10 @@ https://github.com/dknoops/software-security-web-application
 ## API Resources
 
 ### Origin
-All resources are available from every origin, although most of the operations require you to be authenticated through the front end (https://www.dknoops.xyz/). Once authenticated, a Bearer Token will be generated to execute those calls. This way, the token serves as an API Key.
+All resources are available from every origin, although most of the operations require you to be authenticated through the frontend website (https://www.dknoops.xyz/).
+
+### API Key
+Once authenticated through the frontend website, a Bearer Token will be generated to execute your calls. This way, the token serves as an API Key.
 
 ### / (root)
 
